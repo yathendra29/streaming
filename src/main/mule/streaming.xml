@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="b77fe0fb-8bcb-48fe-97ae-ad662080dd0d" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="cc36b1ca-5a21-4f0e-890b-8dae40cf8cdf" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Raghava$777" database="myfirstdb" />
+	</db:config>
+	<flow name="streamingFlow" doc:id="e663d4e4-83d6-4067-a768-3e9c91b08a1b" >
+		<http:listener doc:name="Listener" doc:id="ca9f775f-7cf5-4d63-ac30-9c6a0086897f" config-ref="HTTP_Listener_config" path="/Stream"/>
+		<logger level="INFO" doc:name="Logger" doc:id="dbc680e6-59e1-430c-a7a4-9def04486d49" message="Started"/>
+		<db:select doc:name="Advance_change_streamingStrategies" doc:id="bb8bbab7-60e3-4cd2-aa16-30317f5a9fdd" config-ref="Database_Config">
+			<repeatable-in-memory-iterable />
+			<db:sql ><![CDATA[select * from myfirstdb.studentdetails]]></db:sql>
+		</db:select>
+		<logger level="INFO" doc:name="Raw Payload" doc:id="3bfb26aa-f3db-49a5-8ef9-68288a0f7687" message="#[payload]"/>
+		<logger level="INFO" doc:name="Json payload" doc:id="89049470-9d73-4d2f-8757-535e76b018ed" message="#[output application/json --- payload]"/>
+		<logger level="INFO" doc:name="Raw Payload After Stream Consumed" doc:id="dbab5bc1-0575-4fa0-b693-9084144e0f7f" message="#[payload]"/>
+		<logger level="INFO" doc:name="Json Payload After Stream Consumed" doc:id="76157f9f-0a59-4ca4-a99f-7433100b2a7b" message="#[output application/json --- payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="786ca057-c1eb-487f-86bd-839291d7caf7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
